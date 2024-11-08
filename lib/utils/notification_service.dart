@@ -1,52 +1,32 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:timezone/timezone.dart' as tz;
-import 'package:timezone/data/latest.dart' as tzdata;
 
-class NotificationService {
-  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-  FlutterLocalNotificationsPlugin();
+class NotificationHelper {
+  static final NotificationHelper _instance = NotificationHelper._internal();
+  factory NotificationHelper() => _instance;
 
-  // Initialize the notifications and timezone data
-  Future<void> initialize() async {
-    tzdata.initializeTimeZones(); // Initialize the timezone data
-    final initializationSettingsAndroid =
+  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+
+  NotificationHelper._internal();
+
+  Future<void> init() async {
+    const AndroidInitializationSettings initializationSettingsAndroid =
     AndroidInitializationSettings('app_icon');
-    final initializationSettings =
-    InitializationSettings(android: initializationSettingsAndroid);
-
+    final InitializationSettings initializationSettings = InitializationSettings(
+      android: initializationSettingsAndroid,
+    );
     await flutterLocalNotificationsPlugin.initialize(initializationSettings);
   }
 
-  // Convert DateTime to TZDateTime
-  tz.TZDateTime _convertToTZDateTime(DateTime dateTime) {
-    final location = tz.getLocation('America/New_York'); // Choose your timezone location
-    return tz.TZDateTime.from(dateTime, location);
-  }
+  Future<void> showNotification(int id, String title, String body) async {
+    const AndroidNotificationDetails androidPlatformChannelSpecifics =
+    AndroidNotificationDetails(
+        'reminder_channel', 'Reminder', importance: Importance.max, priority: Priority.high);
+    const NotificationDetails platformChannelSpecifics =
+    NotificationDetails(android: androidPlatformChannelSpecifics);
 
-  // Show the notification
-  Future<void> showNotification(int id, String title, String body, DateTime dateTime) async {
-    var androidDetails = AndroidNotificationDetails(
-      'channel_id',
-      'channel_name',
-      importance: Importance.high,
-      priority: Priority.high,
-      ticker: 'ticker',
-    );
-    var platformDetails = NotificationDetails(android: androidDetails);
-
-    // Convert the DateTime to TZDateTime
-    tz.TZDateTime scheduledTime = _convertToTZDateTime(dateTime);
-
-    // Schedule the notification using the correct parameters
-    await flutterLocalNotificationsPlugin.zonedSchedule(
-      id,
-      title,
-      body,
-      scheduledTime,
-      platformDetails,
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,  // Corrected
-      uiLocalNotificationDateInterpretation:
-      UILocalNotificationDateInterpretation.wallClockTime,
+    await flutterLocalNotificationsPlugin.show(
+      id, title, body, platformChannelSpecifics,
+      payload: 'Reminder Notification',
     );
   }
 }

@@ -17,7 +17,6 @@ class Reminder {
     required this.time,
   });
 
-  // Remove time formatting from the toMap method
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -25,15 +24,18 @@ class Reminder {
       'description': description,
       'category': category,
       'date': date.toIso8601String(),
-      'time': time.toString(),  // Save time as string or number, without formatting
+      'time': time.format,
     };
   }
 
-  Reminder.fromMap(Map<String, dynamic> map)
-      : id = map['id'],
-        title = map['title'],
-        description = map['description'],
-        category = map['category'],
-        date = DateTime.parse(map['date']),
-        time = TimeOfDay.fromDateTime(DateTime.parse(map['time']));
+  factory Reminder.fromMap(Map<String, dynamic> map) {
+    return Reminder(
+      id: map['id'],
+      title: map['title'],
+      description: map['description'],
+      category: map['category'],
+      date: DateTime.parse(map['date']),
+      time: TimeOfDay.fromDateTime(DateTime.parse(map['time'])),
+    );
+  }
 }
