@@ -81,9 +81,33 @@ class _ReminderDetailScreenState extends State<ReminderDetailScreen> {
 
   // Delete the reminder from the database
   void _deleteReminder() async {
-    await _dbHelper.deleteReminder(widget.reminder.id!);
-    widget.onDelete(); // Call the onDelete callback to update the list in the parent screen
-    Navigator.pop(context, true); // Return true to indicate a deletion
+    // Show the confirmation dialog
+    await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Delete Confirmation"),
+          content: Text("Are you sure you want to delete this Reminder?"),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+              child: Text("No"),
+            ),
+            TextButton(
+              onPressed: () async {
+                await _dbHelper.deleteReminder(widget.reminder.id!);
+                widget.onDelete();
+                Navigator.pop(context, true);
+              },
+              child: Text("Yes"),
+            ),
+          ],
+        );
+      },
+    );
+    Navigator.pop(context, true);
   }
 
   @override

@@ -4,6 +4,8 @@ import '../database/database_helper.dart';
 import '../models/reminder _model.dart';
 import 'package:intl/intl.dart';
 
+import '../utils/notification_service.dart';
+
 class AddEditReminderScreen extends StatefulWidget {
   final Reminder? reminder;
   AddEditReminderScreen({this.reminder});
@@ -29,7 +31,7 @@ class _AddEditReminderScreenState extends State<AddEditReminderScreen> {
     }
   }
 
-  void _saveReminder() {
+  Future<void> _saveReminder() async {
     final reminder = Reminder(
       id: widget.reminder?.id,
       title: _titleController.text,
@@ -40,8 +42,10 @@ class _AddEditReminderScreenState extends State<AddEditReminderScreen> {
 
     if (widget.reminder == null) {
       Provider.of<DBHelper>(context, listen: false).insertReminder(reminder);
+      await NotificationHelper.scheduleReminder(reminder);
     } else {
       Provider.of<DBHelper>(context, listen: false).updateReminder(reminder);
+      await NotificationHelper.scheduleReminder(reminder);
     }
 
     Navigator.pop(context);

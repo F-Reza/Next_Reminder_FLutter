@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:next_reminder/utils/notification_service.dart';
 import 'package:next_reminder/view/home_screen.dart';
 import 'package:provider/provider.dart';
 import 'database/database_helper.dart';
@@ -8,7 +7,7 @@ import 'database/database_helper.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await NotificationHelper.initNotifications();
+  //await NotificationHelper.initNotifications();
   runApp(MyApp());
 }
 

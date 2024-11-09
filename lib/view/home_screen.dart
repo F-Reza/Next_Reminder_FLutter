@@ -39,7 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
     showDialog(
       context: context,
       builder: (context) {
-        String? dataTime;
+        DateTime? xDataTime;
 
         return StatefulBuilder(
           builder: (context, setState) {
@@ -120,30 +120,47 @@ class _HomeScreenState extends State<HomeScreen> {
                           lastDate: DateTime(2100),
                         );
 
-                        if (selectedDate != null) {
+                        DateTime parsedDateTime;
+
+                        if (selectedDate == null) {
+                          // If no date is selected, use the current date and time
+                          parsedDateTime = DateTime.now();
+                        } else {
+                          // If a date is selected, use the selected date with the current time
                           TimeOfDay? selectedTime = await showTimePicker(
                             context: context,
                             initialTime: TimeOfDay.now(),
                           );
+
                           if (selectedTime != null) {
-                            final DateTime selectedDateTime = DateTime(
+                            // Combine the selected date and time to create a DateTime object
+                            parsedDateTime = DateTime(
                               selectedDate.year,
                               selectedDate.month,
                               selectedDate.day,
                               selectedTime.hour,
                               selectedTime.minute,
                             );
-                            String formattedDate = DateFormat('dd/MM/yyyy - hh:mm a')
-                                .format(selectedDateTime);
-                            setState(() {
-                              dataTime = formattedDate;
-                            });
-                            dateController.text = selectedDateTime.toString();
+                          } else {
+                            // If no time is selected, just use the date with the current time
+                            parsedDateTime = DateTime(
+                              selectedDate.year,
+                              selectedDate.month,
+                              selectedDate.day,
+                              TimeOfDay.now().hour,
+                              TimeOfDay.now().minute,
+                            );
                           }
                         }
+
+                        // Ensure that the parsedDateTime is set to xDataTime
+                        setState(() {
+                          xDataTime = parsedDateTime;
+                        });
                       },
                       child: Text('Select date and time'),
                     ),
+
                   ],
                 ),
               ),
@@ -159,35 +176,33 @@ class _HomeScreenState extends State<HomeScreen> {
                     if (titleController.text.isNotEmpty &&
                         descriptionController.text.isNotEmpty &&
                         selectedCategory != null) {
-
-                      DateTime parsedDateTime;
-
-                      if (dateController.text.isEmpty) {
-                        String formattedDate = DateFormat('dd/MM/yyyy - hh:mm a').format(DateTime.now());
-                        DateTime pDateTime = DateFormat('dd/MM/yyyy - hh:mm a').parse(formattedDate);
-                        parsedDateTime = pDateTime;
-                        dateController.text = DateTime.now().toString();
-                      } else {
-                        parsedDateTime = DateFormat('dd/MM/yyyy - hh:mm a')
-                            .parse(dateController.text);
+                      if (xDataTime == null) {
+                        xDataTime = DateTime.now();
                       }
-
+                      // Create the Reminder object with a DateTime value for dateTime
                       Reminder newReminder = Reminder(
                         title: titleController.text,
                         description: descriptionController.text,
                         category: selectedCategory!,
-                        dateTime: parsedDateTime,
+                        dateTime: xDataTime!, // Use the null-checked value
                       );
+
+                      // Insert the new reminder into the database
                       await _dbHelper.insertReminder(newReminder);
 
+                      await NotificationHelper.scheduleReminder(newReminder);
 
 
+                      // Fetch the updated data
                       _fetchData();
+
+                      // Close the dialog
                       Navigator.pop(context);
                     }
                   },
                   child: Text('Save'),
-                ),
+                )
+
               ],
             );
           },
