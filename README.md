@@ -4,6 +4,9 @@ A new Flutter project Next Reminder.
 
 ## Getting Started
 
+<img src="https://github.com/F-Reza/Next_Reminder_FLutter/blob/main/Untitled-0.png" width="100%"> 
+
+
 This project is a starting point for a Flutter application.
 
 A few resources to get you started if this is your first Flutter project:
