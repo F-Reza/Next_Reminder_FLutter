@@ -1,34 +1,60 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../providers/reminder_provider.dart';
+import '../models/reminder _model.dart';
 
-class ReminderScreen extends StatelessWidget {
+
+class AddEditReminderScreen extends StatefulWidget {
+  final Reminder reminder;  // Assuming you're passing the reminder object
+
+  AddEditReminderScreen({required this.reminder});
+
+  @override
+  _AddEditReminderScreenState createState() => _AddEditReminderScreenState();
+}
+
+class _AddEditReminderScreenState extends State<AddEditReminderScreen> {
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+  String selectedCategory = '';
+  DateTime? selectedDate;
+
+  @override
+  void initState() {
+    super.initState();
+    _titleController.text = widget.reminder.title;
+    _descriptionController.text = widget.reminder.description;
+    selectedCategory = widget.reminder.category;
+    selectedDate = widget.reminder.dateTime;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Reminders")),
-      body: Consumer<ReminderProvider>(
-        builder: (context, reminderProvider, child) {
-          return ListView.builder(
-            itemCount: reminderProvider.reminders.length,
-            itemBuilder: (context, index) {
-              final reminder = reminderProvider.reminders[index];
-              return ListTile(
-                title: Text(reminder.title),
-                subtitle: Text("${reminder.date.toString()} ${reminder.time.format(context)}"),
-                onTap: () {
-                  // Navigate to the Edit screen or perform another action
-                },
-              );
-            },
-          );
-        },
+      appBar: AppBar(
+        title: Text('Edit Reminder'),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Navigate to AddReminderScreen
-        },
-        child: Icon(Icons.add),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            TextField(
+              controller: _titleController,
+              decoration: InputDecoration(labelText: 'Title'),
+            ),
+            TextField(
+              controller: _descriptionController,
+              decoration: InputDecoration(labelText: 'Description'),
+            ),
+            // Add dropdown or other UI for category and date
+            ElevatedButton(
+              onPressed: () {
+                // Save the changes
+                // You can update the reminder in your database here
+                Navigator.pop(context);
+              },
+              child: Text('Save Changes'),
+            ),
+          ],
+        ),
       ),
     );
   }

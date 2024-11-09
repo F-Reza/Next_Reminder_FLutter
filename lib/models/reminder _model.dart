@@ -1,20 +1,16 @@
-import 'package:flutter/material.dart';
-
 class Reminder {
   int? id;
   String title;
   String description;
   String category;
-  DateTime date;
-  TimeOfDay time;
+  DateTime dateTime;
 
   Reminder({
     this.id,
     required this.title,
     required this.description,
     required this.category,
-    required this.date,
-    required this.time,
+    required this.dateTime,
   });
 
   Map<String, dynamic> toMap() {
@@ -23,8 +19,7 @@ class Reminder {
       'title': title,
       'description': description,
       'category': category,
-      'date': date.toIso8601String(),
-      'time': time.format,
+      'dateTime': dateTime.toIso8601String(),
     };
   }
 
@@ -34,8 +29,9 @@ class Reminder {
       title: map['title'],
       description: map['description'],
       category: map['category'],
-      date: DateTime.parse(map['date']),
-      time: TimeOfDay.fromDateTime(DateTime.parse(map['time'])),
+      dateTime: DateTime.parse(map['dateTime']),
     );
   }
 }
+
+

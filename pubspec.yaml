@@ -18,6 +18,7 @@ dependencies:
   flutter_local_notifications:
   timezone:
   shared_preferences:
+  top_snackbar_flutter:
 
 dev_dependencies:
   flutter_test:
