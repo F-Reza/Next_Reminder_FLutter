@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:next_reminder/view/reminder_details_screen.dart';
 import '../database/database_helper.dart';
 import '../models/reminder _model.dart';
 import '../models/category_model.dart';
@@ -136,10 +137,11 @@ class _HomeScreenState extends State<HomeScreen> {
                             );
                             String formattedDate = DateFormat('dd/MM/yyyy - hh:mm a')
                                 .format(selectedDateTime);
-                            dateController.text = formattedDate;
+                            //dateController.text = formattedDate;
                             setState(() {
                               dataTime = formattedDate;
                             });
+                            dateController.text = selectedDateTime.toString();
                           }
                         }
                       },
@@ -160,13 +162,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     if (titleController.text.isNotEmpty &&
                         descriptionController.text.isNotEmpty &&
                         selectedCategory != null) {
-                      DateTime parsedDateTime;
+
+                        DateTime parsedDateTime;
 
                       // If date is not selected, use the current date and time
                       if (dateController.text.isEmpty) {
                         String formattedDate = DateFormat('dd/MM/yyyy - hh:mm a').format(DateTime.now());
-                        DateTime pdDateTime = DateFormat('dd/MM/yyyy - hh:mm a').parse(formattedDate);
-                        parsedDateTime = pdDateTime;
+                        DateTime pDateTime = DateFormat('dd/MM/yyyy - hh:mm a').parse(formattedDate);
+                        parsedDateTime = pDateTime;
+                        dateController.text = DateTime.now().toString();
                       } else {
                         // Parse the formatted date string into DateTime
                         parsedDateTime = DateFormat('dd/MM/yyyy - hh:mm a')
@@ -203,12 +207,15 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _fetchData(); // Fetch reminders and categories when screen is initialized
   }
-
+//1690ca
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      //backgroundColor: const Color(0xFF1690ca),
       appBar: AppBar(
-        title: const Text('Reminder App'),
+        backgroundColor: const Color(0xFF1690ca),
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: const Text('Next Reminder', style: TextStyle(color: Colors.white,),),
         actions: [
           IconButton(
             icon: const Icon(Icons.category),
@@ -229,16 +236,44 @@ class _HomeScreenState extends State<HomeScreen> {
           : ListView.builder(
         itemCount: reminders.length,
         itemBuilder: (context, index) {
-          return Card(
-            margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-            child: ListTile(
-              contentPadding: EdgeInsets.all(16),
-              title: Text(reminders[index].title),
-              subtitle: Text(reminders[index].description),
-              trailing: Icon(Icons.notifications),
-              onTap: () {
-                // Navigate to reminder details or edit screen if needed
-              },
+          DateTime parsedDate = DateTime.parse((reminders[index].dateTime.toString()));
+          String formattedDate = DateFormat('dd/MM/yyyy - hh:mm a').format(parsedDate);
+          return GestureDetector(
+            onTap: () async {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ReminderDetailScreen(
+                    reminder: reminders[index],
+                    onDelete: () {
+                      setState(() {
+                        reminders.removeAt(index);
+                      });
+                    },
+                  ),
+                ),
+              );
+
+              if (result == true) {
+                _fetchData(); // Refresh list if an edit was made
+              }
+            },
+            child: Card(
+              elevation: 5,
+              color: const Color(0xFF1690ca),
+              margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+              child: ListTile(
+                contentPadding: EdgeInsets.all(16),
+                title: Text(
+                  formattedDate,
+                  style: TextStyle(color: Colors.white),
+                ),
+                subtitle: Text(
+                  reminders[index].title,
+                  style: TextStyle(fontSize: 18, color: Colors.white70),
+                ),
+                trailing: Icon(Icons.notifications, color: Colors.white),
+              ),
             ),
           );
         },

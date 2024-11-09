@@ -16,7 +16,8 @@ class MyApp extends StatelessWidget {
     return ChangeNotifierProvider<DBHelper>(
       create: (context) => DBHelper(),
       child: MaterialApp(
-        title: 'Reminder App',
+        debugShowCheckedModeBanner: false,
+        title: 'Next Reminder',
         theme: ThemeData(
           primarySwatch: Colors.blue,
           visualDensity: VisualDensity.adaptivePlatformDensity,
