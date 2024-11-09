@@ -19,6 +19,7 @@ dependencies:
   timezone:
   shared_preferences:
   top_snackbar_flutter:
+  permission_handler:
 
 dev_dependencies:
   flutter_test:

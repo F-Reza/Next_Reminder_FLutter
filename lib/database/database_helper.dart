@@ -40,8 +40,12 @@ class DBHelper extends ChangeNotifier {
       },
     );
   }
+  Future<void> insertReminder(Reminder reminder) async {
+    final db = await database;
+    await db.insert('reminders', reminder.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
+  }
 
-  Future<int> insertReminder(Reminder reminder) async {
+  Future<int> insertReminderX(Reminder reminder) async {
     final db = await database;
     return await db.insert('reminders', reminder.toMap());
   }

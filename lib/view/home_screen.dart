@@ -4,6 +4,7 @@ import 'package:next_reminder/view/reminder_details_screen.dart';
 import '../database/database_helper.dart';
 import '../models/reminder _model.dart';
 import '../models/category_model.dart';
+import '../utils/notification_service.dart';
 import 'category_screen.dart';
 
 
@@ -14,9 +15,9 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   List<Reminder> reminders = [];
-  List<Category> categories = []; // List to hold categories
+  List<Category> categories = [];
   final DBHelper _dbHelper = DBHelper();
-  String? selectedCategory; // Variable to hold selected category
+  String? selectedCategory;
 
   // Fetch reminders and categories from the database
   void _fetchData() async {
@@ -25,7 +26,7 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       reminders = remindersData;
       categories = categoriesData;
-      selectedCategory = null; // Ensure selectedCategory is null initially
+      selectedCategory = null;  // Reset the selected category
     });
   }
 
@@ -48,17 +49,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Title TextField
                     TextField(
                       controller: titleController,
                       decoration: InputDecoration(hintText: 'Enter title'),
                     ),
-                    // Description TextField
                     TextField(
                       controller: descriptionController,
                       decoration: InputDecoration(hintText: 'Enter description'),
                     ),
-                    // Check if categories list is empty
                     categories.isEmpty
                         ? Padding(
                       padding: const EdgeInsets.only(bottom: 8.0),
@@ -78,7 +76,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   builder: (context) => CategoryScreen(),
                                 ),
                               ).then((_) {
-                                _fetchData(); // Refresh categories after adding a new category
+                                _fetchData();
                               });
                             },
                             child: Text("Add Category"),
@@ -137,7 +135,6 @@ class _HomeScreenState extends State<HomeScreen> {
                             );
                             String formattedDate = DateFormat('dd/MM/yyyy - hh:mm a')
                                 .format(selectedDateTime);
-                            //dateController.text = formattedDate;
                             setState(() {
                               dataTime = formattedDate;
                             });
@@ -153,7 +150,7 @@ class _HomeScreenState extends State<HomeScreen> {
               actions: [
                 TextButton(
                   onPressed: () {
-                    Navigator.pop(context); // Close dialog without saving
+                    Navigator.pop(context);
                   },
                   child: Text('Cancel'),
                 ),
@@ -163,30 +160,30 @@ class _HomeScreenState extends State<HomeScreen> {
                         descriptionController.text.isNotEmpty &&
                         selectedCategory != null) {
 
-                        DateTime parsedDateTime;
+                      DateTime parsedDateTime;
 
-                      // If date is not selected, use the current date and time
                       if (dateController.text.isEmpty) {
                         String formattedDate = DateFormat('dd/MM/yyyy - hh:mm a').format(DateTime.now());
                         DateTime pDateTime = DateFormat('dd/MM/yyyy - hh:mm a').parse(formattedDate);
                         parsedDateTime = pDateTime;
                         dateController.text = DateTime.now().toString();
                       } else {
-                        // Parse the formatted date string into DateTime
                         parsedDateTime = DateFormat('dd/MM/yyyy - hh:mm a')
                             .parse(dateController.text);
                       }
 
-                      // Create new reminder and save it
                       Reminder newReminder = Reminder(
                         title: titleController.text,
                         description: descriptionController.text,
                         category: selectedCategory!,
-                        dateTime: parsedDateTime, // Use parsed DateTime
+                        dateTime: parsedDateTime,
                       );
                       await _dbHelper.insertReminder(newReminder);
-                      _fetchData(); // Refresh the reminder list
-                      Navigator.pop(context); // Close the dialog
+
+
+
+                      _fetchData();
+                      Navigator.pop(context);
                     }
                   },
                   child: Text('Save'),
@@ -195,23 +192,20 @@ class _HomeScreenState extends State<HomeScreen> {
             );
           },
         );
-
       },
     );
   }
 
-
-
   @override
   void initState() {
     super.initState();
-    _fetchData(); // Fetch reminders and categories when screen is initialized
+    NotificationHelper.initNotifications();
+    _fetchData();
   }
-//1690ca
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      //backgroundColor: const Color(0xFF1690ca),
       appBar: AppBar(
         backgroundColor: const Color(0xFF1690ca),
         iconTheme: const IconThemeData(color: Colors.white),
@@ -231,52 +225,88 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: reminders.isEmpty
-          ? Center(child: Text('No reminders added yet.'))
-          : ListView.builder(
-        itemCount: reminders.length,
-        itemBuilder: (context, index) {
-          DateTime parsedDate = DateTime.parse((reminders[index].dateTime.toString()));
-          String formattedDate = DateFormat('dd/MM/yyyy - hh:mm a').format(parsedDate);
-          return GestureDetector(
-            onTap: () async {
-              final result = await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ReminderDetailScreen(
-                    reminder: reminders[index],
-                    onDelete: () {
-                      setState(() {
-                        reminders.removeAt(index);
-                      });
-                    },
-                  ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: DropdownButton<String>(
+              value: selectedCategory,
+              hint: Text("Filter by Category..."),
+              onChanged: (String? newValue) {
+                setState(() {
+                  selectedCategory = newValue;
+                });
+              },
+              isExpanded: true,
+              items: [
+                DropdownMenuItem<String>(
+                  value: null,
+                  child: Text("All Categories"),
                 ),
-              );
-
-              if (result == true) {
-                _fetchData(); // Refresh list if an edit was made
-              }
-            },
-            child: Card(
-              elevation: 5,
-              color: const Color(0xFF1690ca),
-              margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-              child: ListTile(
-                contentPadding: EdgeInsets.all(16),
-                title: Text(
-                  formattedDate,
-                  style: TextStyle(color: Colors.white),
-                ),
-                subtitle: Text(
-                  reminders[index].title,
-                  style: TextStyle(fontSize: 18, color: Colors.white70),
-                ),
-                trailing: Icon(Icons.notifications, color: Colors.white),
-              ),
+                ...categories.map((Category category) {
+                  return DropdownMenuItem<String>(
+                    value: category.name,
+                    child: Text(category.name),
+                  );
+                }).toList(),
+              ],
             ),
-          );
-        },
+          ),
+          Expanded(
+            child: reminders.isEmpty
+                ? Center(child: Text('No reminders added yet.'))
+                : ListView.builder(
+              itemCount: reminders.length,
+              itemBuilder: (context, index) {
+                // Filter reminders based on selected category
+                if (selectedCategory != null &&
+                    reminders[index].category != selectedCategory) {
+                  return SizedBox.shrink();
+                }
+
+                DateTime parsedDate = DateTime.parse((reminders[index].dateTime.toString()));
+                String formattedDate = DateFormat('dd/MM/yyyy - hh:mm a').format(parsedDate);
+                return GestureDetector(
+                  onTap: () async {
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ReminderDetailScreen(
+                          reminder: reminders[index],
+                          onDelete: () {
+                            setState(() {
+                              reminders.removeAt(index);
+                            });
+                          },
+                        ),
+                      ),
+                    );
+                    if (result == true) {
+                      _fetchData();
+                    }
+                  },
+                  child: Card(
+                    elevation: 5,
+                    color: const Color(0xFF1690ca),
+                    margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                    child: ListTile(
+                      contentPadding: EdgeInsets.all(16),
+                      title: Text(
+                        formattedDate,
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      subtitle: Text(
+                        reminders[index].title,
+                        style: TextStyle(fontSize: 18, color: Colors.white70),
+                      ),
+                      trailing: Icon(Icons.notifications, color: Colors.white),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _addReminder,
@@ -285,3 +315,4 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
+
